@@ -40,7 +40,8 @@ export default function BarChart({
   const compact = items.length <= 8;
   const minSlot = 46;
   const fittedW = compact ? 440 : Math.max(W, items.length * minSlot + 16);
-  const PAD = { l: compact ? 24 : 8, r: 8, t: 34, b: compact ? 76 : 104 };
+  // 斜排标签旋转 50° 后会向左下延伸，底部与左侧都要留足空间
+  const PAD = { l: compact ? 34 : 12, r: compact ? 16 : 8, t: 34, b: compact ? 150 : 170 };
   const plotH = height - PAD.t - PAD.b;
   const max = Math.max(...items.map((d) => d.value)) || 1;
   const min = Math.min(...items.map((d) => d.value), 0);
