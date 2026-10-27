@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 模型榜
 
-## Getting Started
+中文大模型能力排行榜。汇总 LMArena 人类盲测对战数据与 OpenRouter 定价信息，提供多维榜单、模型对比与性价比分析。
 
-First, run the development server:
+## 开发命令
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev      # 开发服务器（http://localhost:3000）
+npm run build    # 生产构建
+npm run start    # 启动生产服务器
+npm run lint     # ESLint 检查
+npm run sync     # 重新同步榜单数据
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> 本项目的 Node 版本需 ≥ 22.23.4（REA 与部分依赖的要求）。如果系统 Node 不满足，
+> 可用 `/opt/homebrew/opt/node@24/bin` 提供的 Node 24。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 技术栈
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Next.js 16（App Router + Cache Components + Partial Prefetching）
+- React 19
+- Tailwind CSS 4
+- TypeScript
 
-## Learn More
+## 数据来源
 
-To learn more about Next.js, take a look at the following resources:
+| 数据 | 来源 | 许可证 |
+|---|---|---|
+| Elo 评分、排名、票数 | [LMArena](https://lmarena.ai) 官方排行榜数据集 | CC-BY-4.0 |
+| 价格、上下文窗口、推理标记 | [OpenRouter](https://openrouter.ai) 公开模型 API | 公开数据 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+数据通过 `scripts/sync-data.mjs` 从上述公开源拉取，合并后写入 `src/data/leaderboard.json`。
+脚本包含限流退避与名称模糊匹配（LMArena 的 `(High)` 档位后缀与 OpenRouter 的
+`(batch)`、日期快照后缀需要归一化）。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 数据快照
 
-## Deploy on Vercel
+当前数据规模：
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- 418 个模型、29 家厂商
+- 8 个榜单维度：综合、中文、编程、创意写作、高难度、专家任务、英文、金融与商业
+- 约 45% 的模型能匹配到 OpenRouter 价格，其余显示「—」
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 页面结构
+
+| 路由 | 内容 |
+|---|---|
+| `/` | 主榜单，支持维度切换、开源/闭源/推理模型筛选、搜索与多字段排序 |
+| `/models/[slug]` | 模型详情：各榜单排名、指标卡、性价比分析（424 个静态页面） |
+| `/compare` | 最多 4 个模型的逐项对比 |
+| `/value` | 性价比榜，按「每分 Elo 成本」排序 |
+| `/methodology` | 数据来源、排名规则与局限性说明 |
+
+## 设计约定
+
+- 深色主题，`ink-*` 为中性色阶，`accent-*` 为主色，`teal` 标记开源，`gold` 用于榜首
+- 数字统一使用 `.tabular` 类保证纵向对齐
+- 图表用手写 SVG，不引入图表库，避免额外体积
+- 浮点坐标必须取整后再输出，否则服务端与客户端计算末位差异会触发 hydration 报错
+
+## 已知限制
+
+- 盲测偏好不等于业务能力，票数少的模型排名波动大
+- 中文榜样本量明显小于综合榜
+- 约半数模型无法匹配到定价，属上游命名差异所致
+- 价格为抓取时快照，厂商调价后需重新运行 `npm run sync`

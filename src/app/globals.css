@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ink-950: #08090c;
+  --color-ink-900: #0d0f14;
+  --color-ink-850: #12141b;
+  --color-ink-800: #171a22;
+  --color-ink-700: #22262f;
+  --color-ink-600: #323845;
+  --color-ink-500: #4a5162;
+  --color-ink-400: #6b7385;
+  --color-ink-300: #949cad;
+  --color-ink-200: #c3c9d4;
+  --color-ink-100: #e6e9ef;
+
+  --color-accent-500: #4f8cff;
+  --color-accent-400: #6fa2ff;
+  --color-accent-600: #2f6fe0;
+
+  --color-gold-400: #e8b04b;
+  --color-teal-400: #3fb8a4;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink-950);
+  color: var(--color-ink-100);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1;
+}
+
+/* 表格里的数字用等宽，保证纵向对齐 */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-accent-500) 35%, transparent);
+}
+
+/* 细滚动条，避免亮色打断深色界面 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink-900);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-700);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-600);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
