@@ -169,8 +169,27 @@ LMArena 式盲测数据的组织方式。
 
 ## 附：证据文件
 
-- 完整分析结果：`/tmp/rea-aa2.json`（8.1MB，含全部脚本哈希与 source map 内容）
-- REA evidence_id 可在 JSON 顶层的 `evidence_id` 字段查到
+原始的完整分析结果是 8.1MB 的 JSON（含全部脚本哈希与 source map 内容），
+**不入库**，需要时重新生成：
+
+```bash
+# 1. 启动测试浏览器并连上 CDP 端口 9222
+# 2. 取目标页的 target_id
+rea list-browser-targets http://127.0.0.1:9222
+
+# 3. 重新跑分析，输出到 docs/evidence/
+mkdir -p docs/evidence
+rea analyze-web-bundle http://127.0.0.1:9222 <target_id> \
+  --observation-ms 5000 \
+  --analysis-timeout-ms 120000 \
+  --total-analysis-timeout-ms 300000 \
+  --fetch-source-maps \
+  --format json > docs/evidence/rea-analysis-evidence.json
+```
+
+`docs/evidence/` 已在 `.gitignore` 中排除。本报告中的路由清单、脚本数量、
+source map 结论均可在该文件中复核；每条 finding 都带脚本 SHA-256 与行列号，
+顶层的 `evidence_id` 可用于追溯单次分析。
 
 > 本报告所有结论均来自公开静态资源分析。未对目标站点进行任何写入、破坏、
 > 绕过鉴权或高频请求行为。
