@@ -35,11 +35,10 @@ export default function BarChart({
   if (items.length === 0) return null;
 
   const W = 1000;
-  // 卡片内柱子少时给标签留更多空间，柱宽也相应放大
+  // compact 模式（卡片内少量柱子）：始终缩进容器，不滚动
   const compact = items.length <= 8;
-  // 柱子多时按每根最小宽度撑开总宽，外层横向滚动，避免标签与数值挤在一起
   const minSlot = compact ? 0 : 46;
-  const fittedW = Math.max(W, items.length * minSlot + 16);
+  const fittedW = compact ? W : Math.max(W, items.length * minSlot + 16);
   const PAD = { l: 8, r: 8, t: 34, b: compact ? 84 : 104 };
   const plotH = height - PAD.t - PAD.b;
   const max = Math.max(...items.map((d) => d.value)) || 1;
@@ -68,8 +67,15 @@ export default function BarChart({
 
   return (
     <div className="relative">
-      <div className="overflow-x-auto">
-      <svg viewBox={`0 0 ${fittedW} ${height}`} width={fittedW} height={height} style={{ minWidth: fittedW }} role="img">
+      <div className={compact ? "" : "overflow-x-auto"}>
+      <svg
+        viewBox={`0 0 ${fittedW} ${height}`}
+        width={compact ? undefined : fittedW}
+        height={compact ? undefined : height}
+        className={compact ? "w-full" : undefined}
+        style={compact ? undefined : { minWidth: fittedW }}
+        role="img"
+      >
         {gridLines.map((g, i) => (
           <line
             key={i}
