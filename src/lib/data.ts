@@ -22,9 +22,13 @@ export interface BoardEntry {
   license: string | null;
   openWeights: boolean;
   contextLength: number | null;
+  maxOutput: number | null;
   promptPrice: number | null;
   completionPrice: number | null;
+  cacheReadPrice: number | null;
+  cacheWritePrice: number | null;
   reasoning: boolean | null;
+  modality: string | null;
   matched: boolean;
 }
 
@@ -36,10 +40,15 @@ export interface ModelSummary {
   license: string | null;
   openWeights: boolean;
   contextLength: number | null;
+  maxOutput: number | null;
   promptPrice: number | null;
   completionPrice: number | null;
+  cacheReadPrice: number | null;
+  cacheWritePrice: number | null;
   reasoning: boolean | null;
+  modality: string | null;
   huggingFaceId: string | null;
+  parameters: number | null;
   elo: number;
   votes: number;
 }
@@ -160,4 +169,40 @@ export function formatLicense(license: string | null): string {
     if (key.startsWith(k)) return v;
   }
   return license;
+}
+
+/** 参数规模格式化：8.19e9 → 8.2B */
+export function formatParams(v: number | null): string {
+  if (v == null) return "—";
+  if (v >= 1e12) return `${(v / 1e12).toFixed(1)}T`;
+  if (v >= 1e9) return `${(v / 1e9).toFixed(1)}B`;
+  if (v >= 1e6) return `${(v / 1e6).toFixed(0)}M`;
+  return String(v);
+}
+
+/** 按输入/输出混合估算每次请求成本（假定输入 1000 token、输出 500 token） */
+export function estimateRequestCost(m: {
+  promptPrice: number | null;
+  completionPrice: number | null;
+}): number | null {
+  if (m.promptPrice == null || m.completionPrice == null) return null;
+  return (m.promptPrice * 1000 + m.completionPrice * 500) / 1_000_000;
+}
+
+/** 输出 500 token 所需秒数（用于端到端响应时间估算，按 60 tok/s 基准） */
+export function estimateResponseTime(m: { completionPrice: number | null }): number | null {
+  if (m.completionPrice == null) return null;
+  return 500 / 60;
+}
+
+export function formatSeconds(v: number | null): string {
+  if (v == null) return "—";
+  if (v < 1) return `${(v * 1000).toFixed(0)}ms`;
+  return `${v.toFixed(1)}s`;
+}
+
+export function formatTokenCount(v: number | null): string {
+  if (v == null) return "—";
+  if (v >= 1000) return `${(v / 1000).toFixed(0)}K`;
+  return String(v);
 }

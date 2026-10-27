@@ -15,8 +15,8 @@ interface Props {
   height?: number;
   valueSuffix?: string;
   maxBars?: number;
-  /** 数值格式：数字 / 美元 / 千 */
-  format?: "number" | "price" | "compact";
+  /** 数值格式：数字 / 美元 / 千分之一美元 / 压缩 */
+  format?: "number" | "price" | "milli" | "compact";
 }
 
 /**
@@ -63,9 +63,11 @@ export default function BarChart({
   const fmt =
     format === "price"
       ? (v: number) => (v < 0.01 ? `$${v.toFixed(4)}` : v < 1 ? `$${v.toFixed(2)}` : `$${v.toFixed(0)}`)
-      : format === "compact"
-        ? (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1))
-        : (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
+      : format === "milli"
+        ? (v: number) => `$${v.toFixed(3)}`
+        : format === "compact"
+          ? (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1))
+          : (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
 
   return (
     <div className="relative">

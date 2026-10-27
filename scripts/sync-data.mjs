@@ -81,23 +81,44 @@ async function fetchOpenRouter() {
   for (const m of json.data ?? []) {
     const prompt = Number(m.pricing?.prompt ?? 0);
     const completion = Number(m.pricing?.completion ?? 0);
-    // m.name 形如 "OpenAI: GPT-5.5"，去掉厂商前缀后才是可与排行榜比对的模型名
+    const cacheRead = Number(m.pricing?.input_cache_read ?? 0);
+    const cacheWrite = Number(m.pricing?.input_cache_write ?? 0);
     const cleanName = (m.name ?? "").replace(/^[^:]+:\s*/, "");
-    // OpenRouter 价格单位是「每 token 美元」，乘 1e6 转成「每百万 token」，
-    // 再收敛到 4 位小数，避免浮点乘法的长尾误差
-    const roundPrice = (v) => Math.round(v * 1e6 * 1e4) / 1e4;
+    const roundPrice = (v) => (Number.isFinite(v) ? Math.round(v * 1e6 * 1e4) / 1e4 : null);
     map.set(normalizeName(cleanName), {
       id: m.id,
       name: cleanName,
       vendor: (m.id ?? "").split("/")[0],
       contextLength: m.context_length ?? null,
-      promptPrice: Number.isFinite(prompt) ? roundPrice(prompt) : null,
-      completionPrice: Number.isFinite(completion) ? roundPrice(completion) : null,
+      maxOutput: m.top_provider?.max_completion_tokens ?? null,
+      promptPrice: roundPrice(prompt),
+      completionPrice: roundPrice(completion),
+      cacheReadPrice: cacheRead > 0 ? roundPrice(cacheRead) : null,
+      cacheWritePrice: cacheWrite > 0 ? roundPrice(cacheWrite) : null,
       reasoning: Boolean(m.reasoning),
       huggingFaceId: m.hugging_face_id || null,
+      modality: m.architecture?.modality ?? null,
+      inputModalities: m.architecture?.input_modalities ?? null,
     });
   }
   return map;
+}
+
+/** HuggingFace 上开源模型的参数总量，用于「模型规模」段。 */
+async function fetchParameterCount(hfId) {
+  if (!hfId) return null;
+  try {
+    const res = await fetch(`https://huggingface.co/api/models/${hfId}`, {
+      headers: { "user-agent": "nixiang-leaderboard/1.0" },
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const total = json.safetensors?.total;
+    return typeof total === "number" && total > 0 ? total : null;
+  } catch {
+    return null;
+  }
 }
 
 // LMArena 的模型名带 "(High)" 这类推理档位后缀，OpenRouter 的更简洁。
@@ -208,9 +229,13 @@ async function main() {
           license: r.license ?? null,
           openWeights: String(r.license ?? "").toLowerCase() !== "proprietary",
           contextLength: or?.contextLength ?? null,
+          maxOutput: or?.maxOutput ?? null,
           promptPrice: or?.promptPrice ?? null,
           completionPrice: or?.completionPrice ?? null,
+          cacheReadPrice: or?.cacheReadPrice ?? null,
+          cacheWritePrice: or?.cacheWritePrice ?? null,
           reasoning: or?.reasoning ?? null,
+          modality: or?.modality ?? null,
           matched: Boolean(or),
         };
       });
@@ -236,14 +261,39 @@ async function main() {
       license: r.license ?? null,
       openWeights: String(r.license ?? "").toLowerCase() !== "proprietary",
       contextLength: or?.contextLength ?? null,
+      maxOutput: or?.maxOutput ?? null,
       promptPrice: or?.promptPrice ?? null,
       completionPrice: or?.completionPrice ?? null,
+      cacheReadPrice: or?.cacheReadPrice ?? null,
+      cacheWritePrice: or?.cacheWritePrice ?? null,
       reasoning: or?.reasoning ?? null,
+      modality: or?.modality ?? null,
       huggingFaceId: or?.huggingFaceId ?? null,
+      parameters: null,
       elo: Number(Number(r.rating).toFixed(1)),
       votes: Math.round(Number(r.vote_count ?? 0)),
     };
   }
+
+  // 为有 HuggingFace 关联的开源模型补参数量（并发 6，失败静默跳过）
+  const hfTargets = Object.values(allModels).filter(
+    (m) => m.openWeights && m.huggingFaceId,
+  );
+  console.log(`同步 HuggingFace 参数量（${hfTargets.length} 个候选）…`);
+  let fetched = 0;
+  const QUEUE = [...hfTargets];
+  async function worker() {
+    while (QUEUE.length) {
+      const m = QUEUE.shift();
+      const params = await fetchParameterCount(m.huggingFaceId);
+      if (params) {
+        m.parameters = params;
+        fetched++;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: 6 }, worker));
+  console.log(`  ✓ ${fetched} 个模型取到参数量`);
 
   const venders = [...new Set(Object.values(allModels).map((m) => m.vendor))].sort();
 
