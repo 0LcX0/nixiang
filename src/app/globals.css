@@ -1,32 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink-950: #08090c;
-  --color-ink-900: #0d0f14;
-  --color-ink-850: #12141b;
-  --color-ink-800: #171a22;
-  --color-ink-700: #22262f;
-  --color-ink-600: #323845;
-  --color-ink-500: #4a5162;
-  --color-ink-400: #6b7385;
-  --color-ink-300: #949cad;
-  --color-ink-200: #c3c9d4;
-  --color-ink-100: #e6e9ef;
+  /* 页面基调：白底黑字，参考专业数据站的克制配色 */
+  --color-paper: #ffffff;
+  --color-mist: #f1f2f4;
+  --color-mist-deep: #e4e6ea;
+  --color-line: #e2e4e8;
+  --color-line-strong: #d0d3d9;
 
-  --color-accent-500: #4f8cff;
-  --color-accent-400: #6fa2ff;
-  --color-accent-600: #2f6fe0;
+  --color-ink: #0a0a0a;
+  --color-ink-soft: #3d3d3d;
+  --color-ink-muted: #6b6b6b;
+  --color-ink-faint: #9a9a9a;
 
-  --color-gold-400: #e8b04b;
-  --color-teal-400: #3fb8a4;
+  /* 图表主色 */
+  --color-brand: #6d28d9;
+  --color-brand-soft: #ede9fe;
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Songti SC", "Noto Serif SC", Georgia, Cambria, "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html {
@@ -35,49 +33,39 @@ html {
 }
 
 body {
-  background: var(--color-ink-950);
-  color: var(--color-ink-100);
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-feature-settings: "tnum" 1;
 }
 
-/* 表格里的数字用等宽，保证纵向对齐 */
+/* 标题统一用衬线体，营造编辑类数据站的质感 */
+.font-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
 .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--color-accent-500) 35%, transparent);
+  background: #ddd6fe;
 }
 
-/* 细滚动条，避免亮色打断深色界面 */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-ink-900);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-ink-700);
+  background: #d4d4d8;
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ink-600);
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.animate-rise {
-  animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  background: #a1a1aa;
 }

@@ -17,13 +17,8 @@ interface Props {
 }
 
 export default function CompareClient({ models, ranksByName, boardLabels }: Props) {
-  const sorted = useMemo(
-    () => [...models].sort((a, b) => b.elo - a.elo),
-    [models],
-  );
-  const [selected, setSelected] = useState<string[]>(
-    sorted.slice(0, 2).map((m) => m.slug),
-  );
+  const sorted = useMemo(() => [...models].sort((a, b) => b.elo - a.elo), [models]);
+  const [selected, setSelected] = useState<string[]>(sorted.slice(0, 2).map((m) => m.slug));
   const [query, setQuery] = useState("");
 
   const chosen = selected
@@ -33,8 +28,7 @@ export default function CompareClient({ models, ranksByName, boardLabels }: Prop
   const filtered = query.trim()
     ? sorted.filter(
         (m) =>
-          m.name.toLowerCase().includes(query.toLowerCase()) ||
-          m.vendorLabel.includes(query),
+          m.name.toLowerCase().includes(query.toLowerCase()) || m.vendorLabel.includes(query),
       )
     : sorted;
 
@@ -46,27 +40,30 @@ export default function CompareClient({ models, ranksByName, boardLabels }: Prop
     });
   }
 
-  const metrics: { label: string; render: (m: ModelSummary) => string; better?: "high" | "low" }[] = [
-    { label: "综合 Elo", render: (m) => m.elo.toFixed(0), better: "high" },
-    { label: "投票数", render: (m) => formatNumber(m.votes), better: "high" },
-    { label: "输入价格 /M", render: (m) => formatPrice(m.promptPrice), better: "low" },
-    { label: "输出价格 /M", render: (m) => formatPrice(m.completionPrice), better: "low" },
-    { label: "综合价格 /M", render: (m) => formatPrice(blendedPrice(m)), better: "low" },
-    { label: "上下文窗口", render: (m) => formatContext(m.contextLength), better: "high" },
-    { label: "权重", render: (m) => (m.openWeights ? "开放" : "闭源") },
-    { label: "推理模型", render: (m) => (m.reasoning ? "是" : m.reasoning === false ? "否" : "—") },
+  const metrics: { label: string; render: (m: ModelSummary) => string }[] = [
+    { label: "综合 Elo", render: (m) => m.elo.toFixed(0) },
+    { label: "投票数", render: (m) => formatNumber(m.votes) },
+    { label: "输入价格 /M", render: (m) => formatPrice(m.promptPrice) },
+    { label: "输出价格 /M", render: (m) => formatPrice(m.completionPrice) },
+    { label: "综合价格 /M", render: (m) => formatPrice(blendedPrice(m)) },
+    { label: "上下文窗口", render: (m) => formatContext(m.contextLength) },
+    { label: "权重", render: (m) => (m.openWeights ? "开放权重" : "闭源") },
+    {
+      label: "推理模型",
+      render: (m) => (m.reasoning ? "是" : m.reasoning === false ? "否" : "—"),
+    },
   ];
 
   return (
     <div>
-      <div className="rounded-xl border border-ink-800 bg-ink-900">
-        <div className="flex items-center gap-3 border-b border-ink-800 px-4 py-3">
-          <span className="text-[12.5px] text-ink-400">选择模型（最多 4 个）</span>
+      <div className="rounded-lg border border-line bg-paper">
+        <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+          <span className="text-[12.5px] text-ink-soft">选择模型（最多 4 个）</span>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜索…"
-            className="ml-auto w-44 rounded-md border border-ink-700 bg-ink-850 px-2.5 py-1 text-[12px] text-ink-100 placeholder:text-ink-500 outline-none focus:border-accent-600"
+            className="ml-auto w-44 rounded-md border border-line px-2.5 py-1 text-[12px] text-ink placeholder:text-ink-faint outline-none focus:border-line-strong"
           />
         </div>
 
@@ -78,10 +75,10 @@ export default function CompareClient({ models, ranksByName, boardLabels }: Prop
                 key={m.slug}
                 onClick={() => toggle(m.slug)}
                 disabled={!on && selected.length >= 4}
-                className={`truncate rounded-md px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${
+                className={`truncate rounded px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${
                   on
-                    ? "bg-accent-500/15 text-accent-400"
-                    : "text-ink-300 hover:bg-ink-800 disabled:opacity-40"
+                    ? "bg-brand-soft text-brand"
+                    : "text-ink-soft hover:bg-mist disabled:opacity-40"
                 }`}
                 title={m.name}
               >
@@ -94,49 +91,45 @@ export default function CompareClient({ models, ranksByName, boardLabels }: Prop
       </div>
 
       {chosen.length === 0 ? (
-        <p className="mt-8 text-center text-[13px] text-ink-500">请至少选择一个模型</p>
+        <p className="mt-8 text-center text-[13px] text-ink-faint">请至少选择一个模型</p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-ink-800">
-          <table className="w-full min-w-[640px] border-collapse text-[13px]">
+        <div className="mt-6 overflow-x-auto rounded-lg border border-line">
+          <table className="w-full min-w-[640px] border-collapse text-[12.5px]">
             <thead>
-              <tr className="border-b border-ink-800 bg-ink-900">
-                <th className="w-40 px-4 py-3 text-left text-[11.5px] font-medium uppercase tracking-wide text-ink-500">
+              <tr className="border-b border-line bg-mist">
+                <th className="w-40 px-4 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-ink-faint">
                   指标
                 </th>
                 {chosen.map((m) => (
                   <th key={m.slug} className="px-4 py-3 text-left font-medium">
-                    <Link
-                      href={`/models/${m.slug}`}
-                      className="text-[13px] text-ink-100 hover:text-accent-400"
-                    >
+                    <Link href={`/models/${m.slug}`} className="text-[13px] text-ink hover:text-brand">
                       {m.name}
                     </Link>
-                    <div className="mt-0.5 text-[11px] font-normal text-ink-400">{m.vendorLabel}</div>
+                    <div className="mt-0.5 text-[11px] font-normal text-ink-muted">
+                      {m.vendorLabel}
+                    </div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {metrics.map((row) => {
-                const values = chosen.map((m) => row.render(m));
-                return (
-                  <tr key={row.label} className="border-b border-ink-850 last:border-0">
-                    <td className="px-4 py-2.5 text-ink-400">{row.label}</td>
-                    {chosen.map((m, i) => (
-                      <td key={m.slug} className="px-4 py-2.5 tabular text-ink-100">
-                        {values[i]}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
+              {metrics.map((row) => (
+                <tr key={row.label} className="border-b border-line last:border-0">
+                  <td className="px-4 py-2.5 text-ink-muted">{row.label}</td>
+                  {chosen.map((m) => (
+                    <td key={m.slug} className="px-4 py-2.5 tabular text-ink">
+                      {row.render(m)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
               {boardLabels.map((b) => (
-                <tr key={b.key} className="border-b border-ink-850 last:border-0">
-                  <td className="px-4 py-2.5 text-ink-400">{b.label}榜排名</td>
+                <tr key={b.key} className="border-b border-line last:border-0">
+                  <td className="px-4 py-2.5 text-ink-muted">{b.label}榜排名</td>
                   {chosen.map((m) => {
                     const r = ranksByName[m.name]?.find((x) => x.key === b.key);
                     return (
-                      <td key={m.slug} className="px-4 py-2.5 tabular text-ink-100">
+                      <td key={m.slug} className="px-4 py-2.5 tabular text-ink">
                         {r ? `#${r.rank}` : "—"}
                       </td>
                     );
@@ -148,8 +141,8 @@ export default function CompareClient({ models, ranksByName, boardLabels }: Prop
         </div>
       )}
 
-      <p className="mt-3 text-[11.5px] text-ink-600">
-        绿色高亮表示该项指标在所选模型中更优。综合价格按输入 25%、输出 75% 加权。
+      <p className="mt-3 text-[11.5px] text-ink-faint">
+        综合价格按输入 25%、输出 75% 加权计算。
       </p>
     </div>
   );

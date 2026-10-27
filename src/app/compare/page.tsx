@@ -21,9 +21,9 @@ export default function ComparePage() {
   const boardLabels = boardKeys.map((k) => ({ key: k, label: dataset.boards[k].label }));
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-10">
-      <h1 className="text-[24px] font-semibold tracking-tight">模型对比</h1>
-      <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-ink-400">
+    <div className="mx-auto max-w-[1400px] px-6 py-10">
+      <h1 className="font-display text-[36px] leading-tight text-ink">模型对比</h1>
+      <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-ink-soft">
         从 {models.length} 个模型中任选最多 4 个，逐项对比能力评分、调用成本与规格。
       </p>
       <div className="mt-7">
