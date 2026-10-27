@@ -1,28 +1,13 @@
-import { Suspense } from "react";
-import Link from "next/link";
-import BoardTabs from "@/components/BoardTabs";
-import Leaderboard from "@/components/Leaderboard";
-import ValueScatter from "@/components/ValueScatter";
+import LeaderboardShell from "@/components/LeaderboardShell";
 import {
   boardKeys,
   dataset,
   formatDate,
-  getBoard,
-  type BoardKey,
 } from "@/lib/data";
 
-export default function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ board?: string }>;
-}) {
-  // 榜单切换依赖 URL 参数，放到 Suspense 内，保证首屏可静态预渲染
+export default function Home() {
   const stats = computeStats();
-  const boards = boardKeys.map((key) => ({
-    key,
-    label: dataset.boards[key].label,
-    count: dataset.boards[key].entries.length,
-  }));
+  const boards = boardKeys.map((key) => dataset.boards[key]);
 
   return (
     <div className="mx-auto max-w-7xl px-5">
@@ -53,42 +38,14 @@ export default function Home({
       </section>
 
       <section className="py-8">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-          <BoardTabs boards={boards} />
-          <Link href="/value" className="text-[12.5px] text-accent-400 hover:text-accent-500">
-            看性价比榜 →
-          </Link>
-        </div>
-
-      <Suspense fallback={<BoardSkeleton />}>
-        <BoardPanel searchParams={searchParams} />
-      </Suspense>
-      </section>
-
-      <section className="pb-6">
-        <ValueScatter entries={dataset.boards.overall.entries} />
+        <LeaderboardShell boards={boards} defaultKey="overall" />
       </section>
     </div>
   );
 }
 
-async function BoardPanel({ searchParams }: { searchParams: Promise<{ board?: string }> }) {
-  const params = await searchParams;
-  const requested = params.board ?? "overall";
-  const activeKey = (boardKeys.includes(requested) ? requested : "overall") as BoardKey;
-  const board = getBoard(activeKey) ?? getBoard("overall")!;
-  return <Leaderboard entries={board.entries} />;
-}
-
-function BoardSkeleton() {
-  return (
-    <div className="h-[520px] animate-pulse rounded-xl border border-ink-800 bg-ink-900/40" />
-  );
-}
-
 function computeStats() {
-  const board = dataset.boards.overall;
-  const entries = board.entries;
+  const entries = dataset.boards.overall.entries;
   const top = entries[0];
   const openTop = entries.find((e) => e.openWeights);
   const priced = entries.filter((e) => e.promptPrice != null && e.promptPrice > 0);

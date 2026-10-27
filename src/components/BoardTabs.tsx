@@ -1,24 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-
 interface Props {
   boards: { key: string; label: string; count: number }[];
+  activeKey: string;
+  onSelect: (key: string) => void;
 }
 
-function TabsInner({ boards }: Props) {
-  const searchParams = useSearchParams();
-  const activeKey = searchParams.get("board") ?? "overall";
-
+export default function BoardTabs({ boards, activeKey, onSelect }: Props) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {boards.map((b) => (
-        <Link
+        <button
           key={b.key}
-          href={`/?board=${b.key}`}
-          scroll={false}
+          type="button"
+          onClick={() => onSelect(b.key)}
+          aria-pressed={b.key === activeKey}
           className={`rounded-lg border px-3.5 py-2 text-[13px] transition-colors ${
             b.key === activeKey
               ? "border-accent-600 bg-accent-500/10 text-accent-400"
@@ -27,30 +23,8 @@ function TabsInner({ boards }: Props) {
         >
           {b.label}
           <span className="ml-1.5 text-[11px] text-ink-500 tabular">{b.count}</span>
-        </Link>
+        </button>
       ))}
     </div>
-  );
-}
-
-export default function BoardTabs({ boards }: Props) {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex flex-wrap gap-1.5">
-          {boards.map((b) => (
-            <span
-              key={b.key}
-              className="rounded-lg border border-ink-800 bg-ink-900 px-3.5 py-2 text-[13px] text-ink-300"
-            >
-              {b.label}
-              <span className="ml-1.5 text-[11px] text-ink-500 tabular">{b.count}</span>
-            </span>
-          ))}
-        </div>
-      }
-    >
-      <TabsInner boards={boards} />
-    </Suspense>
   );
 }
