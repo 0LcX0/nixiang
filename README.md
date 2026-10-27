@@ -2,12 +2,24 @@
 
 中文大模型能力排行榜。汇总 LMArena 人类盲测对战数据与 OpenRouter 定价信息，提供多维榜单、模型对比与性价比分析。
 
+**线上地址：https://0lcx0.github.io/nixiang/**
+
+## 部署
+
+推送到 `main` 分支即自动构建并部署到 GitHub Pages（见 `.github/workflows/deploy.yml`）。
+站点为纯静态导出（`output: "export"`），无需服务器。
+
+`basePath` 由 `next.config.ts` 从 `GITHUB_REPOSITORY` 推导，因此在 GitHub Actions
+中构建会自动带上 `/nixiang` 前缀；本地开发保持根路径。
+
+首次启用 Pages 需要在仓库 Settings → Pages 中把 Source 设为 **GitHub Actions**。
+
 ## 开发命令
 
 ```bash
 npm run dev      # 开发服务器（http://localhost:3000）
-npm run build    # 生产构建
-npm run start    # 启动生产服务器
+npm run build    # 生产构建（输出静态文件到 out/）
+npm run start    # 仅本地预览生产版本（静态导出后不可用，改用 npx serve out）
 npm run lint     # ESLint 检查
 npm run sync     # 重新同步榜单数据
 ```
@@ -46,10 +58,13 @@ npm run sync     # 重新同步榜单数据
 | 路由 | 内容 |
 |---|---|
 | `/` | 主榜单，支持维度切换、开源/闭源/推理模型筛选、搜索与多字段排序 |
-| `/models/[slug]` | 模型详情：各榜单排名、指标卡、性价比分析（424 个静态页面） |
+| `/models/[slug]` | 模型详情：各榜单排名、指标卡、性价比分析（418 个静态页面） |
 | `/compare` | 最多 4 个模型的逐项对比 |
 | `/value` | 性价比榜，按「每分 Elo 成本」排序 |
 | `/methodology` | 数据来源、排名规则与局限性说明 |
+
+榜单切换为客户端状态（静态导出不支持服务端读取 searchParams），
+页面本身仍是预渲染的静态 HTML。
 
 ## 设计约定
 
