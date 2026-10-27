@@ -35,18 +35,19 @@ export default function BarChart({
   if (items.length === 0) return null;
 
   const W = 1000;
-  // compact 模式（卡片内少量柱子）：始终缩进容器，不滚动
+  // compact 模式（卡片内少量柱子）：用接近卡片实际宽度的 viewBox，
+  // 避免 1000 宽的图被缩到 430px 卡片里导致字号同比缩小
   const compact = items.length <= 8;
-  const minSlot = compact ? 0 : 46;
-  const fittedW = compact ? W : Math.max(W, items.length * minSlot + 16);
-  const PAD = { l: 8, r: 8, t: 34, b: compact ? 84 : 104 };
+  const minSlot = 46;
+  const fittedW = compact ? 440 : Math.max(W, items.length * minSlot + 16);
+  const PAD = { l: compact ? 24 : 8, r: 8, t: 34, b: compact ? 76 : 104 };
   const plotH = height - PAD.t - PAD.b;
   const max = Math.max(...items.map((d) => d.value)) || 1;
   const min = Math.min(...items.map((d) => d.value), 0);
   const span = max - min || 1;
 
   const slot = (fittedW - PAD.l - PAD.r) / items.length;
-  const barW = Math.min(slot * (compact ? 0.42 : 0.66), compact ? 60 : 34);
+  const barW = Math.min(slot * (compact ? 0.44 : 0.66), compact ? 40 : 34);
   const dense = items.length > 16;
   const valueFont = compact ? 13 : dense ? 10 : 11;
   const labelFont = compact ? 13 : dense ? 10 : 10.5;
